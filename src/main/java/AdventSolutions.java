@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by rPhilip on 6/27/17.
@@ -12,74 +11,124 @@ import java.util.HashMap;
 public class AdventSolutions {
 
     public static int advent04pt1() throws IOException {
-        int checksum = 0;
+
         FileReader fr = new FileReader("AoC04.txt");
         BufferedReader br = new BufferedReader(fr);
         String currentLine;
-        int totalSum = 0;
+        int numValid = 0;
+
         while ((currentLine = br.readLine()) != null) {
 
-            ArrayList<Character> checksumCharacters = new ArrayList<>();
-            HashMap<Character, Integer[]> counter = new HashMap<>();
-            boolean bracketFlag = false;
-            String sectorId = "";
-            for(int i = 0; i < currentLine.length(); i++) {
-                char currChar = currentLine.charAt(i);
-                if (!bracketFlag) {
-                    if (currChar == '[') {
-                        bracketFlag = true;
-                    } else if (currChar == '-') {
-                        //do nothing
-                    } else if (currChar < 58 && currChar > 47) {
-                        sectorId += currChar;
+            int[] charCounter = new int['z' + 1];
+            String roomNum = "";
+            String checksum = "";
+            boolean inChecksum = false;
+            String code = "";
+            //line processing
+            for (int i = 0; i < currentLine.length(); i++) {
+                char c = currentLine.charAt(i);
+                if (inChecksum) {
+                    if (c != ']') {
+                        checksum += c;
+                    }
+                } else {
+                    if (c == '[') {
+                        inChecksum = true;
+                        continue;
+                    }
+                    if (c == '-') {
+                        code += c;
+                        continue;
+                    }
+                    if (c <= '9' && c >= '0') {
+                        roomNum += c;
+                        continue;
                     } else {
-                        if (!counter.containsKey(currChar)){
-                            counter.put(currChar, new Integer[]{1, i});
+                        code += c;
+                        charCounter[c]++;
+                    }
+                }
+            }
+
+            //count up the results
+            assert checksum.length() == 5;
+
+            int[] countArray = new int[5];
+            boolean isNumValid = true;
+
+            for (int i = 0; i < 5; i++) {
+                //verify that the next letter in the checksum has the max number of letters after its predecessor
+                char charInChecksum = checksum.charAt(i);
+                int maxVal = getMaxValue(charCounter);
+                int actualValOfChar = charCounter[charInChecksum];
+                if (maxVal == actualValOfChar) {
+                    charCounter[charInChecksum] = 0;
+                    countArray[i] = maxVal;
+                } else {
+                    isNumValid = false;
+                    break;
+                }
+            }
+
+            if (isNumValid) {
+                //verify that if there are ties in frequency, that they are appropriately broken by alphabetical order.
+                for (int i = 1; i < 5; i++) {
+                    if (countArray[i - 1] > countArray[i]) {
+                        continue;
+                    } else {
+                        if (checksum.charAt(i - 1) < checksum.charAt(i)) {
+                            continue;
                         } else {
-                            Integer[] array = counter.get(currChar);
-                            array[0]++;
-                            counter.put(currChar, array);
+                            isNumValid = false;
+                            break;
                         }
                     }
-                } else {
-                    if (currChar == ']') break;
-                    checksumCharacters.add(currChar);
                 }
             }
-            Integer[] array = counter.get(checksumCharacters.get(0));
-            if (array == null) {
-                continue;
-            }
-            int countOfChar = array[0];
-            int ix = array[1];
-            boolean isChecksumValid = true;
-            for (int i = 1; i < 5; i++) {
-                Integer[] currentArray = counter.get(checksumCharacters.get(i));
-                if (currentArray == null) {
-                    isChecksumValid = false;
-                    break;
-                } else if (currentArray[0] > countOfChar) {
-                    isChecksumValid = false;
-                    break;
-                } else if (currentArray[0] == countOfChar ) {
-                    if (checksumCharacters.get(i - 1) > checksumCharacters.get(i)) {
-                        isChecksumValid = false;
-                        break;
-                    }
-                    countOfChar = currentArray[0];
-                    ix = currentArray[1];
-                } else {
 
+            if (isNumValid) {
+
+                int num = Integer.parseInt(roomNum);
+                String decoded = "";
+                for (int i = 0; i < code.length(); i++) {
+                    decoded += charConverter(code.charAt(i), num);
                 }
+                if (decoded.contains("north")) {
+                    System.out.println(decoded + " " + roomNum);
+                }
+                numValid += num;
             }
-            if (isChecksumValid) {
-                checksum += Integer.parseInt(sectorId);
-            }
-            totalSum += Integer.parseInt(sectorId);
+
         }
-        System.out.println(totalSum);
-        return checksum;
+
+        return numValid;
     }
+
+    static char charConverter(char c, int rotations) {
+        if (c == '-') {
+            return ' ';
+        }
+        for (int i = 0; i < rotations; i++) {
+            if (c == 'z') {
+                c = 'a';
+            } else {
+                c++;
+            }
+        }
+        return c;
+    }
+
+    static int getMaxValue(int[] array) {
+        int max = array[0];
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] > max) {
+                max = array[i];
+            }
+        }
+        return max;
+    }
+
+
     public static int advent03pt2() throws IOException {
         int numTriangles = 0;
         FileReader fr = new FileReader("AoC03.txt");
