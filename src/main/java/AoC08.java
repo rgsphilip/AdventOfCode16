@@ -6,16 +6,6 @@ import java.io.IOException;
  * Created by rPhilip on 7/14/17.
  */
 public class AoC08 {
-    static public int AoC08pt2() throws IOException {
-        FileReader fr = new FileReader("AoC08.txt");
-        BufferedReader br = new BufferedReader(fr);
-        String currentLine;
-
-        while ((currentLine = br.readLine()) != null) {
-
-        }
-        return 0;
-    }
 
     static public int AoC08pt1() throws IOException{
         char[][] board = new char[6][50];
@@ -96,6 +86,5 @@ public class AoC08 {
 
     static public void main(String[] args) throws IOException {
         System.out.println("The solution to AoC08.1 is: " + AoC08pt1());
-        //System.out.println("The solution to AoC08.2 is: " + AoC08pt2());
     }
 }
