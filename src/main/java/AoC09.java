@@ -10,77 +10,38 @@ public class AoC09 {
     static long AoC09pt2() throws IOException {
         FileReader fr = new FileReader("AoC09.txt");
         BufferedReader br = new BufferedReader(fr);
-        String currentLine;
-        long decompressedLength = 0;
-        while ((currentLine = br.readLine()) != null) {
-
-            //iterate through the string
-            for(int i = 0; i < currentLine.length(); i++) {
-                long prevDecompressed = decompressedLength;
-                if (currentLine.charAt(i) == '(') {
-                    //we need to do multiplication
-                    //get the substring from i (we don't need to look back at already-processed letters)
-                    String substring = currentLine.substring(i);
-                    //get the decompressed length. We set the second param to true because we are looking at the outer
-                    //part of the equation
-                    decompressedLength += calculateDecompressedSize(substring, true);
-                    //get the length of the current section analyzed
-                    String[] parts = substring.split("\\(|\\)");
-                    String[] dimensions = parts[1].split("x");
-                    int increment = Integer.parseInt(dimensions[0]) + parts[1].length() + 1;
-                    //increment i so that we don't re-analyze what we've already looked at.
-                    i += increment;
-                } else {
-                    //it's just a letter we count
-                    decompressedLength++;
-                }
-                if (prevDecompressed > decompressedLength) {
-                    System.out.println("OVERFLOW!!!");
-                }
-            }
-        }
-        return decompressedLength;
+        String currentLine = br.readLine();
+        return calculateSubstringLength(currentLine, 1);
     }
 
-    static long calculateDecompressedSize(String str, boolean isOuter) {
-        //get the parameters
-        String[] parts = str.split("\\(|\\)");
-        String[] dimensions = parts[1].split("x");
-        int numChars = Integer.parseInt(dimensions[0]);
-        int numRepetitions = Integer.parseInt(dimensions[1]);
-        int charsToTrim = parts[1].length() + 2;
-        String trimmedStr = str.substring(charsToTrim); //takes of first set of parens for this substring
+    static long calculateSubstringLength(String str, int numRepetitions) {
+        long decompressedLength = 0;
 
-        boolean isAdditive = false;
+        for(int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) == '(') {
+                String currentStr = str.substring(i);
+                // 1) Get the numChars value
+                String[] parts = currentStr.split("\\(|\\)");
+                String[] dimensions = parts[1].split("x");
+                int numChars = Integer.parseInt(dimensions[0]);
+                int internalRepetitions = Integer.parseInt(dimensions[1]);
 
-        String checkStr = trimmedStr.substring(0, numChars); //this is the string within the numChars
+                // 2) Get the substring that numChars applies to
+                int charsToTrim = parts[1].length() + 2;
+                String markedString = currentStr.substring(charsToTrim, charsToTrim + numChars);
 
-        if (trimmedStr.charAt(0) != '(') {
-            isAdditive = true;
-            trimmedStr = trimmedStr.substring(numChars);
-        } else {
-            trimmedStr = trimmedStr.substring(0, numChars);
-        }
-
-        if (isOuter) {
-            if (doesStrContainParens(checkStr)) {
-                if (isAdditive) {
-                    return numRepetitions * numChars + calculateDecompressedSize(trimmedStr, false);
-                } else {
-                    return numRepetitions * calculateDecompressedSize(trimmedStr, false);
-                }
-            }
-        } else {
-            if (doesStrContainParens(trimmedStr)) {
-                if (isAdditive) {
-                    return numRepetitions * numChars + calculateDecompressedSize(trimmedStr, false);
-                } else {
-                    return numRepetitions * calculateDecompressedSize(trimmedStr, false);
-                }
+                // 3) Calculate the number of letters in that substring
+                decompressedLength += calculateSubstringLength(markedString, internalRepetitions);
+                i += charsToTrim + markedString.length() - 1;
+            } else {
+                decompressedLength++;
             }
         }
+        return decompressedLength * numRepetitions;
+    }
 
-        return numChars * numRepetitions;
+    static boolean isMarker(String str) {
+        return str.charAt(0) == '(';
     }
 
     static boolean doesStrContainParens(String str) {
