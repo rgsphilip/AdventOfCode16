@@ -40,14 +40,6 @@ public class AoC09 {
         return decompressedLength * numRepetitions;
     }
 
-    static boolean isMarker(String str) {
-        return str.charAt(0) == '(';
-    }
-
-    static boolean doesStrContainParens(String str) {
-        return str.contains("(");
-    }
-
     static public int AoC09pt1() throws IOException {
 
         FileReader fr = new FileReader("AoC09.txt");
