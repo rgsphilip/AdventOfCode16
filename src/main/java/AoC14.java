@@ -58,10 +58,6 @@ public class AoC14 {
                 }
             }
         }
-        //Collections.sort(indices);
-        for (int i = 0; i < indices.size(); i++) {
-            System.out.println(i + ": " + indices.get(i));
-        }
 
         return indices.get(63);
     }
@@ -88,10 +84,6 @@ public class AoC14 {
                     }
                 }
             }
-        }
-        //Collections.sort(indices);
-        for (int i = 0; i < indices.size(); i++) {
-            System.out.println(i + ": " + indices.get(i));
         }
 
         return indices.get(63);
