@@ -3,7 +3,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -13,43 +12,53 @@ public class AoC14 {
 
     static public int AoC14pt2(String input) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("MD5");
-        HashMap<Integer, Character> triplesFound = new HashMap<>();
-        HashMap<Integer, Character> quintuplesFound = new HashMap<>();
-
+        HashMap<Integer, String> foundHashes = new HashMap<>();
         int index = -1;
         ArrayList<Integer> indices = new ArrayList<>();
 
-        while (indices.size() < 100) {
+        while (indices.size() < 64) {
             index++;
-            String key = input + Integer.toString(index);
-            md.update(StandardCharsets.UTF_8.encode(key));
-            String result = String.format("%032x", new BigInteger(1, md.digest()));
-            for (int i = 0; i < 2016; i++) {
-                md.update(StandardCharsets.UTF_8.encode(result));
+            String result = "";
+            if (foundHashes.containsKey(index)) {
+                result = foundHashes.get(index);
+            } else {
+                String key = input + Integer.toString(index);
+                md.update(StandardCharsets.UTF_8.encode(key));
                 result = String.format("%032x", new BigInteger(1, md.digest()));
-            }
-            //System.out.println(result);
-            char findTriples = getMultCharsInARow(3, result);
-            if (findTriples != '!') {
-                triplesFound.put(index, findTriples);
-            }
-
-            char findQuintuples = getMultCharsInARow(5, result);
-            if (findQuintuples != '!') {
-                quintuplesFound.put(index, findQuintuples);
-                for (int i = Math.max(0, index - 1000); i < index; i++) {
-                    if (triplesFound.containsKey(i)) {
-                        if (triplesFound.get(i) == findQuintuples) {
-                            indices.add(i);
-                            System.out.println("match found");
-                        }
-                    }
+                for (int i = 0; i < 2016; i++) {
+                    key = result;
+                    md.update(StandardCharsets.UTF_8.encode(key));
+                    result = String.format("%032x", new BigInteger(1, md.digest()));
                 }
             }
 
+            char findTriple = getMultCharsInARow(3, result);
+            if (findTriple != '!') {
+                for (int i = index + 1; i <= index + 1000; i++) {
+                    String nextResult = "";
+                    if (foundHashes.containsKey(i)) {
+                        nextResult = foundHashes.get(i);
+                    } else {
+                        String nextKey = input + Integer.toString(i);
+                        md.update(StandardCharsets.UTF_8.encode(nextKey));
+                        nextResult = String.format("%032x", new BigInteger(1, md.digest()));
+                        for (int j = 0; j < 2016; j++) {
+                            nextKey = nextResult;
+                            md.update(StandardCharsets.UTF_8.encode(nextKey));
+                            nextResult = String.format("%032x", new BigInteger(1, md.digest()));
+                        }
+                        foundHashes.put(i, nextResult);
+                    }
 
+                    if (getMultCharsInARow(5, nextResult) == findTriple) {
+                        indices.add(index);
+                        //System.out.println("found one");
+                        break;
+                    }
+                }
+            }
         }
-        Collections.sort(indices);
+        //Collections.sort(indices);
         for (int i = 0; i < indices.size(); i++) {
             System.out.println(i + ": " + indices.get(i));
         }
@@ -59,42 +68,31 @@ public class AoC14 {
 
     static public int AoC14pt1(String input) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("MD5");
-        HashMap<Integer, Character> triplesFound = new HashMap<>();
-        HashMap<Integer, Character> quintuplesFound = new HashMap<>();
 
         int index = -1;
         ArrayList<Integer> indices = new ArrayList<>();
 
-        while (indices.size() < 200) {
+        while (indices.size() < 64) {
             index++;
             String key = input + Integer.toString(index);
             md.update(StandardCharsets.UTF_8.encode(key));
             String result = String.format("%032x", new BigInteger(1, md.digest()));
-
-            char findTriples = getMultCharsInARow(3, result);
-            if (findTriples != '!') {
-                triplesFound.put(index, findTriples);
-
-            }
-
-            char findQuintuples = getMultCharsInARow(5, result);
-            if (findQuintuples != '!') {
-                quintuplesFound.put(index, findQuintuples);
-                for (int i = Math.max(0, index - 1000); i < index; i++) {
-                    if (triplesFound.containsKey(i)) {
-                        if (triplesFound.get(i) == findQuintuples) {
-                            indices.add(i);
-                        }
+            char findTriple = getMultCharsInARow(3, result);
+            if (findTriple != '!') {
+                for (int i = index + 1; i <= index + 1000; i++) {
+                    String nextKey = input + Integer.toString(i);
+                    md.update(StandardCharsets.UTF_8.encode(nextKey));
+                    String nextResult = String.format("%032x", new BigInteger(1, md.digest()));
+                    if (getMultCharsInARow(5, nextResult) == findTriple) {
+                        indices.add(index);
                     }
                 }
             }
-
-
         }
-        Collections.sort(indices);
-//        for (int i = 0; i < indices.size(); i++) {
-//            System.out.println(i + ": " + indices.get(i));
-//        }
+        //Collections.sort(indices);
+        for (int i = 0; i < indices.size(); i++) {
+            System.out.println(i + ": " + indices.get(i));
+        }
 
         return indices.get(63);
     }
@@ -102,7 +100,7 @@ public class AoC14 {
     private static char getMultCharsInARow(int multiple, String str) {
         char character = '!';
         outerLoop:
-        for (int i = 0; i < str.length() - multiple; i++) {
+        for (int i = 0; i < str.length() - multiple + 1; i++) {
             char currentChar = str.charAt(i);
             for (int j = i + 1; j < i + multiple; j++) {
                 if (str.charAt(j) != currentChar) {
@@ -119,8 +117,8 @@ public class AoC14 {
 
 
     static public void main(String[] args) throws NoSuchAlgorithmException {
-        System.out.println("The solution to AoC14.1 is: " + AoC14pt1("cuanljph"));
-        System.out.println("The solution to AoC14.2 is: " + AoC14pt2("abc"));
+        //System.out.println("The solution to AoC14.1 is: " + AoC14pt1("cuanljph"));
+        System.out.println("The solution to AoC14.2 is: " + AoC14pt2("cuanljph"));
 
     }
 }
