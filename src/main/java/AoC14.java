@@ -109,7 +109,7 @@ public class AoC14 {
 
 
     static public void main(String[] args) throws NoSuchAlgorithmException {
-        //System.out.println("The solution to AoC14.1 is: " + AoC14pt1("cuanljph"));
+        System.out.println("The solution to AoC14.1 is: " + AoC14pt1("cuanljph"));
         System.out.println("The solution to AoC14.2 is: " + AoC14pt2("cuanljph"));
 
     }
